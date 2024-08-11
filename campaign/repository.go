@@ -8,6 +8,8 @@ type Repository interface {
 	FindbyID(ID int) (Campaign, error)
 	Save(campaign Campaign) (Campaign, error)
 	Update(campaign Campaign) (Campaign, error)
+	SaveImage(campaignImage CampaignImage) (CampaignImage, error)
+	MarkAllImagesAsNonPrimary(campaignID int) (bool, error)
 }
 
 type repository struct {
@@ -68,4 +70,23 @@ func (r *repository) Update(campaign Campaign) (Campaign, error) {
 	}
 
 	return campaign, nil
+}
+
+func (r *repository) SaveImage(campaignImage CampaignImage) (CampaignImage, error) {
+	err := r.db.Create(&campaignImage).Error
+	if err != nil {
+		return campaignImage, err
+	}
+
+	return campaignImage, err
+}
+
+func (r *repository) MarkAllImagesAsNonPrimary(campaignID int) (bool, error) {
+	err := r.db.Model(&CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", false).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

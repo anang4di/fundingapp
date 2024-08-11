@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"fundingapp/campaign"
 	"fundingapp/helper"
 	"fundingapp/user"
@@ -114,5 +115,56 @@ func (h *campaignHandler) UpdateCampaign(c *gin.Context) {
 	}
 
 	response := helper.APIResponse("Update campaign successfuly", http.StatusOK, "success", campaign.FormatCampaign(updatedCampaign))
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *campaignHandler) UploadImage(c *gin.Context) {
+	var input campaign.CreateCampaignImageInput
+
+	err := c.ShouldBind(&input)
+	if err != nil {
+		errors := helper.FormatErrorValidation(err)
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponse("Upload campaign image failed", http.StatusBadRequest, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	input.User = currentUser
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Upload campaign image failed", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	userID := currentUser.ID
+
+	path := fmt.Sprintf("images/campaign/%d-%s", userID, file.Filename)
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+
+		response := helper.APIResponse("Upload campaign image failed", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	_, err = h.service.SaveCampaignImage(input, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+
+		response := helper.APIResponse(fmt.Sprintf("Upload campaign image failed. %s", err.Error()), http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	data := gin.H{"is_uploaded": true}
+
+	response := helper.APIResponse("Upload campaign image successfuly", http.StatusOK, "success", data)
 	c.JSON(http.StatusOK, response)
 }
