@@ -41,7 +41,7 @@ func (s *service) GetCampaigns(userID int) ([]Campaign, error) {
 }
 
 func (s *service) GetCampaignByID(input GetCampaignDetailInput) (Campaign, error) {
-	campaign, err := s.repository.FindbyID(input.ID)
+	campaign, err := s.repository.FindByID(input.ID)
 
 	if err != nil {
 		return campaign, err
@@ -69,7 +69,7 @@ func (s *service) CreateCampaign(input CreateCampaignInput) (Campaign, error) {
 }
 
 func (s *service) UpdateCampaign(inputID GetCampaignDetailInput, inputData CreateCampaignInput) (Campaign, error) {
-	campaign, err := s.repository.FindbyID(inputID.ID)
+	campaign, err := s.repository.FindByID(inputID.ID)
 	if err != nil {
 		return campaign, err
 	}
@@ -94,7 +94,7 @@ func (s *service) UpdateCampaign(inputID GetCampaignDetailInput, inputData Creat
 }
 
 func (s *service) SaveCampaignImage(input CreateCampaignImageInput, fileLocation string) (CampaignImage, error) {
-	campaign, err := s.repository.FindbyID(input.CampaignID)
+	campaign, err := s.repository.FindByID(input.CampaignID)
 	if err != nil {
 		return CampaignImage{}, err
 	}

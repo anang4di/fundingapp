@@ -5,8 +5,10 @@ import "gorm.io/gorm"
 type Repository interface {
 	GetByCampaignID(campaignID int) ([]Transaction, error)
 	GetByUserID(UserID int) ([]Transaction, error)
+	GetByID(ID int) (Transaction, error)
 	Save(transaction Transaction) (Transaction, error)
 	Update(transaction Transaction) (Transaction, error)
+	FindAll() ([]Transaction, error)
 }
 
 type repository struct {
@@ -39,8 +41,21 @@ func (r *repository) GetByUserID(UserID int) ([]Transaction, error) {
 	return transactions, nil
 }
 
+func (r *repository) GetByID(ID int) (Transaction, error) {
+	var transaction Transaction
+
+	err := r.db.Where("id = ?", ID).Find(&transaction).Error
+
+	if err != nil {
+		return transaction, err
+	}
+
+	return transaction, nil
+}
+
 func (r *repository) Save(transaction Transaction) (Transaction, error) {
 	err := r.db.Create(&transaction).Error
+
 	if err != nil {
 		return transaction, err
 	}
@@ -50,9 +65,21 @@ func (r *repository) Save(transaction Transaction) (Transaction, error) {
 
 func (r *repository) Update(transaction Transaction) (Transaction, error) {
 	err := r.db.Save(&transaction).Error
+
 	if err != nil {
 		return transaction, err
 	}
 
 	return transaction, nil
+}
+
+func (r *repository) FindAll() ([]Transaction, error) {
+	var transactions []Transaction
+
+	err := r.db.Preload("Campaign").Order("id desc").Find(&transactions).Error
+	if err != nil {
+		return transactions, err
+	}
+
+	return transactions, nil
 }
