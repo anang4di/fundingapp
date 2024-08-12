@@ -55,3 +55,30 @@ func (h *transactionHandler) GetUserTransaction(c *gin.Context) {
 	response := helper.APIResponse("Get user transactions successfuly", http.StatusOK, "success", transaction.FormatUserTransactions(transactions))
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *transactionHandler) CreateTransaction(c *gin.Context) {
+	var input transaction.CreateTransactionInput
+
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatErrorValidation(err)
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponse("Get campaign transactions failed", http.StatusBadRequest, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	input.User = currentUser
+
+	newTransaction, err := h.service.CreateTransaction(input)
+	if err != nil {
+		response := helper.APIResponse("Create transaction failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Create transaction successfuly", http.StatusOK, "success", newTransaction)
+	c.JSON(http.StatusOK, response)
+}
