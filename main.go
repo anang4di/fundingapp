@@ -5,6 +5,7 @@ import (
 	"fundingapp/campaign"
 	"fundingapp/handler"
 	"fundingapp/helper"
+	"fundingapp/payment"
 	"fundingapp/transaction"
 	"fundingapp/user"
 	"log"
@@ -29,10 +30,11 @@ func main() {
 	campaignRepository := campaign.NewRepository(db)
 	transactionRepository := transaction.NewRepository(db)
 
+	authService := auth.NewService()
 	userService := user.NewService(userRepository)
 	campaignService := campaign.NewService(campaignRepository)
-	transactionService := transaction.NewService(transactionRepository, campaignRepository)
-	authService := auth.NewService()
+	paymentService := payment.NewService()
+	transactionService := transaction.NewService(transactionRepository, campaignRepository, paymentService)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewCampaignHandler(campaignService)
